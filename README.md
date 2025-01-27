@@ -1,213 +1,162 @@
-# llava-caption.py
-## Automatically captions a directory of text files containing prompts
-## and corresponding PNG images using the llava multimodal model
-___
-Use case: You have a large number of images you intend to use for a training set, but the images were rendered with generative AI so many of the features in the prompts are missing from the images, which makes for bad training.  Manual captioning is too time-consuming.  Enter llava-caption.py which has higher quality than BLIP with the basic processsors, and near-manual quality with the DualModel processor.
-___
+# LLaVA-Caption
 
-## DualModel *experimental*
-Two-model processing, Llava 1.5 and Mixtral. Mixtral is running on Ollama, Llava on LLama C++ Python
-Mixtral parses the prompt and queries LLava for each element then Mixtral constructs a caption from the responses.
-Why Ollama?  Two instances of Llama C++ python do not work.  Ollama works fine even though it has a llama c++ back-end.
-DualModel is being released as experimental: it is slow and has a tendency to go off-course over time,
-but that may be fixable with grammar and optimizations. 
+By David "Zanshinmu" Van de Ven
+zanshin.g1@gmail.com
 
-## VisionModel *experimental*
-One-model processing, Llama3.2-Vision running on Ollama.  A modern vision model proves ideal for this purpose. 
-The model parses the prompt against the image, leaving out parts of the prompt which aren't validated to exist in the image.
-Accuracy is higher than DualModel, system requirements are lower, and it's faster.
-But wait, there's more!  SECONDARY_CAPTION works beautifully with VisionModel to generate a natural language caption more suitable to training Flux or SD3.  Typically it runs faster than DualModel even with the additional processing.  
-
-# Installation Guide
-
-This guide provides instructions for setting up the necessary requirements for `llava-caption.py`
+Automatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions.
 
 ---
-## Installing Ollama 
-Ollama can be downloaded and installed for various architectures and operating systems 
-**https://ollama.com/download
-___
 
-## Setting Up Python Virtual Environment and Installing Dependencies
+## Overview
 
-This repository utilizes Python 3 and relies on specific dependencies to function properly. To ensure a consistent environment and manage these dependencies efficiently, it's recommended to set up a Python virtual environment. This isolates the project's dependencies from other Python projects on your system.
+LLaVA Caption was designed to solve a specific problem in AI training: when using generated images, the original prompts often contain elements that aren't present in the final images. Manual verification and captioning is time-consuming, but inaccurate captions make for bad training data. This tool provides higher quality captions than BLIP, with options ranging from basic processing to near-manual quality.
 
-### Setting Up a Python Virtual Environment
+Llava Caption was built and tested on Apple Silicon. While cross-platform tools make it accessible to PCs, it hasn’t been tested on Linux or Windows. 
 
-1. **Install Python 3**: If you haven't already, [download and install Python 3](https://www.python.org/downloads/) for your operating system.
+---
 
-2. **Install `virtualenv` (if not already installed)**: `virtualenv` is a tool used to create isolated Python environments. If you haven't installed it yet, you can do so via pip, Python's package installer. Run the following command in your terminal:
+## Available Models
 
-    ```
-    pip install virtualenv
-    ```
+### MLXModel (Recommended)(Default)
+- Uses Qwen2-VL-7B-Instruct-8bit with Apple's MLX framework
+- Apple Silicon only
+- Fast processing with 16GB unified memory
+- Accuracy comparable to VisionModel
+- **Requirements**: Apple Silicon Mac, 16GB+ unified memory
 
-3. **Create a Virtual Environment**: Navigate to your project directory in the terminal and create a new virtual environment by running:
+### VisionModel
+- Uses Llama 3.2 Vision via Ollama
+- High accuracy with moderate resource requirements
+- Excellent results with secondary caption generation
+- Ideal for training Flux/SD3
+- **Requirements**: 24GB RAM, GPU recommended
 
-    ```
-    python3 -m venv venv
-    ```
+### DualModel (Experimental)
+- Combines LLaVA 1.5 and Mixtral
+- Highest potential accuracy but resource-intensive
+- Supports distributed processing across machines
+- Currently experimental: may need optimization
+- **Requirements**: 64GB RAM, GPU strongly recommended
 
-    This command will create a folder named `venv` in your project directory, containing the Python interpreter and standard library for your virtual environment.
+### Additional Models
+- **OLModel**: Basic Ollama-based processing
+- **HFModel**: Hugging Face transformers-based processing (Note: MPS not supported on Apple Silicon)
+- **LCPModel**: Direct LLaMA C++ processing
 
-4. **Activate the Virtual Environment**: Before you can install dependencies or run your project within the virtual environment, you need to activate it. On macOS/Linux, run:
+---
 
-    ```
-    source venv/bin/activate
-    ```
+## Installation
 
-    On Windows, run:
+### Prerequisites
+- Python 3.10 ([python.org](https://www.python.org/downloads/))
+- Git ([git-scm.com](https://git-scm.com/))
+- Ollama ([ollama.com/download](https://ollama.com/download)) - Required for Ollama-based models
 
-    ```
-    venv\Scripts\activate
-    ```
-
-    Once activated, you should see `(venv)` prefixed to your terminal prompt, indicating that you are now working within the virtual environment.
-
-### Installing Dependencies
-
-This project uses a `requirements.txt` file to specify its dependencies. To install these dependencies, ensure that your virtual environment is activated, and then run:
-
-```
-pip install -r requirements.txt
-```
-
-This command will install all the required dependencies listed in the `requirements.txt` file.
-
-### Deactivating the Virtual Environment
-
-Once you're done working on your project, you can deactivate the virtual environment by simply running:
-
-```
-deactivate
-```
-
-This will return you to your system's default Python environment.
-
-By following these steps, you'll have a clean, isolated environment for your Python project, with all the necessary dependencies installed.
-
-## Setting `TORCH_DEVICE` Environment Variable for PyTorch
-
-When working with PyTorch, it's often necessary to specify the device on which tensors are allocated. This can be particularly important when dealing with GPUs for acceleration. PyTorch provides the `torch.device` class to handle this.
-
-By setting the `TORCH_DEVICE` environment variable, you can conveniently specify the default device for PyTorch operations without having to modify your script each time.
-
-## Setting up `TORCH_DEVICE`
-
-Follow these steps to set up the `TORCH_DEVICE` environment variable:
-
-### 1. Determine the Device
-
-Decide on the device you want to use. This could be a CPU or a specific GPU.
-
-### 2. Set `TORCH_DEVICE`
-
-Set the `TORCH_DEVICE` environment variable to specify the desired device. You can do this in your terminal or shell script.
-
-For example, to set it to use GPU 0:
-
+### Quick Start
 ```bash
-export TORCH_DEVICE="cuda:0"
-```
-## Setting `LLAVA_PROCESSOR` Environment Variable
+# Clone repository
+git clone https://github.com/yourusername/llava-caption.git
+cd llava-caption
 
-The script allows you to select the Llava model processor with an environment variable which will be used to load the appropriate class to process text and images. 
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-The current options are:
-    OLModel  - Process with Ollama application
-    HFModel  - Process with Huggingface Transformers
-    LCPModel - Process with Llama C++ python bindings
-    DualModel - Process with dual models, mixtral with ollama, llava with Llama C++ python
+# Install package
+pip install -e .
 
-## Setting `LLAVA_PROCESSOR` Environment Variable
-
-Follow these steps to set up the `LLAVA_PROCESSOR` environment variable:
-
-### 1. Determine the processor
-
-Decide on the processor you want to use. 
-
-### 2. Set `LLAVA_PROCESSOR`
-
-Set the `LLAVA_PROCESSOR` environment variable to specify the desired processor. You can do this in your terminal or shell script.
-
-For example, to set it to use Ollama:
-
-```bash
-export LLAVA_PROCESSOR="OLModel"
-```
-## Setting `OLLAMA_REMOTEHOST` Environment Variable
-
-The script allows you to select the IP address of the Ollama host.  Default is localhost. 
-
-## Setting `OLLAMA_REMOTEHOST` Environment Variable
-
-Follow these steps to set up the `OLLAMA_REMOTEHOST` environment variable:
-
-### 1. Determine the address of the host
-
-Decide on the host running Ollama you want to use. 
-
-### 2. Set `OLLAMA_REMOTEHOST`
-
-Set the `OLLAMA_REMOTEHOST` environment variable to specify the desired processor. You can do this in your terminal or shell script.
-
-For example, to set it to use Ollama on 192.168.1.118:
-
-```bash
-export OLLAMA_REMOTEHOST="192.168.1.118:11434"
+# Verify installation
+llava-caption --help
 ```
 
-## Setting `SYSTEM_LOGGING` Environment Variable
-
-The SYSTEM_LOGGING environment variable enables console messages from the models which you may need for debugging on your system. 
-
-Follow these steps to set up the `SYSTEM_LOGGING` environment variable:
-
-### 2. Set `SYSTEM_LOGGING`
-
-Set the `SYSTEM_LOGGING` environment variable to 'True'. You can do this in your terminal or shell script.
-
-For example:
-
-```bash
-export SYSTEM_LOGGING="True"
-```
-## Setting `LOGGING` Environment Variable
-
-The LOGGING environment variable enables console messages from the script which you may need for debugging on your system. 
-
-Follow these steps to set up the `LOGGING` environment variable:
-
-### 2. Set `LOGGING`
-
-Set the `LOGGING` environment variable to 'True'. You can do this in your terminal or shell script.
-
-For example:
-
-```bash
-export LOGGING="True"
-```
-
-
-# Caveats
-
-- The appropriate LLava models will be automatically downloaded using huggingface-hub, or with Ollama.
-    This can take some time and disk space.  The models in the script have been carefully selected for performance and resource use.
-- OLModel assumes you have Ollama installed locally by default but can use a remote host via OLLAMA_REMOTEHOST
-- The current HFModel implementation does not use MPS on Apple Silicon due to a bug in LLava 1.6
-- HFModel defaults to CPU.  See above for how to specify your device with env variables. 
-- The memory requirements are high and it takes a lot of CPU to run the model with HFModel in CPU mode
-- The script assumes you have already preproccessed the PNG files in the target directory to extract the prompts to text files with the same names. 
-- The script will overwrite the prompt text files in the target directory with the generated captions
-- DualModel is the most accurate but requires at least 64GB of Unified Memory on a Mac, and as much GPU as you can give it. 
-  However, it is possible to run the LLava model locally and the Mixtral model on a remote host via Ollama. (see OLLAMA_REMOTEHOST)
+---
 
 ## Usage
 
-The `llava-caption.py` script can be used as follows:
+### Basic Commands
+```bash
+# Basic usage with defaults
+llava-caption /path/to/images/
 
-- Process a directory of images and prompt files:
-  ```bash
-  python3 llava-caption.py /path/to/image/folder/
-  ```
+# Specific model selection
+llava-caption --model MLXModel /path/to/images/
+
+# Direct captioning (no prompt comparison)
+llava-caption --direct-caption /path/to/images/
+```
+
+### Command Line Options
+```bash
+llava-caption [OPTIONS] DIRECTORY
+
+Arguments:
+  DIRECTORY                      Directory containing images
+
+Model Selection:
+  --model MODEL                  Model to use (default: MLXModel)
+                                [env: LLAVA_PROCESSOR]
+
+Processing Modes:
+  --direct-caption              Enable direct captioning mode
+  --secondary-caption           Enable secondary captioning
+                                [env: SECONDARY_CAPTION]
+  --no-preprocess              Disable text preprocessing
+                                [env: PREPROCESSOR]
+
+Model Parameters:
+  --temperature FLOAT           Generation temperature (default: 0.0)
+                                [env: TEMPERATURE]
+  --gpu-layers INT             GPU layers (-1 for all)
+                                [env: N_GPU_LAYERS]
+
+Ollama Configuration:
+  --ollama-address HOST:PORT    Ollama address (default: 127.0.0.1:11434)
+                                [env: OLLAMA_REMOTEHOST]
+
+Logging:
+  --logging                     Enable detailed logging
+  --sys-logging                Enable system logging
+```
+
+### Example Usage Patterns
+```bash
+# MLXModel with direct captioning
+llava-caption --model MLXModel --direct-caption /path/to/images/
+
+# VisionModel with remote Ollama
+llava-caption --model VisionModel --ollama-address 192.168.1.110:11434 /path/to/images/
+
+# Secondary captioning with higher temperature
+llava-caption --model VisionModel --secondary-caption --temperature 0.7 /path/to/images/
+
+# Debug mode
+llava-caption --logging --sys-logging /path/to/images/
+```
+
+---
+
+## Important Notes
+
+### PC Users
+- You may need to remove any mlx entries from requirements.txt to install successfully. 
+
+### Model Downloads
+- Models are automatically downloaded via Hugging Face Hub or Ollama
+- Initial downloads may take time and significant disk space
+- Models are selected for optimal performance and resource usage
+
+### Resource Requirements
+- **CPU Mode**: Significant CPU and RAM usage, especially with HFModel
+- **GPU Usage**: Set `TORCH_DEVICE="cuda:0"` for Nvidia GPU support
+- **Distributed Processing**: Possible to run models across 2 hosts using DualModel
+
+### File Handling
+- Expects matching .png and .txt files in target directory
+- Existing text files will be overwritten with new captions
+- In direct caption mode, creates new .txt files for each image
+
+---
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
