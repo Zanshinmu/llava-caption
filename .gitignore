@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*_pycache_*
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg*
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.env
+.venv
+
+# Model Cache Directories
+.cache/
+*.gguf
+*.bin
+huggingface/
+models/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.png
+*.txt
+!pyproject-toml.txt
+!requirements*.txt
+!README.md
+!LICENSE
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
+logs/
