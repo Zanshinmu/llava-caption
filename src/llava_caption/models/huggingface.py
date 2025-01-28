@@ -39,9 +39,9 @@ class HFModel(BaseModel):
         prompt = f"[INST] <{image}>\n{self.config.system_prompt}'{text}'[/INST]"
 
         inputs = self.processor(
-            prompt, 
-            image, 
-            return_tensors="pt", 
+            image,
+            prompt,
+            return_tensors="pt",
             padding=True
         ).to(self.device)
 
@@ -57,4 +57,8 @@ class HFModel(BaseModel):
         )
         
         image.close()
+        return self.strip_text(response)
+   
+    def direct_caption(self, image_path, instruction=BaseModel.DEFAULT_CAPTION_PROMPT):
+        response = self.process_image(image_path, instruction)
         return self.strip_text(response)

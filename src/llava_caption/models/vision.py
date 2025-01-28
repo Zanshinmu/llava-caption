@@ -15,7 +15,7 @@ class VisionModel(BaseModel):
             'num_predict': 160
         }
 
-    def _llm_completion(
+    def llm_completion(
         self, 
         prompt: str, 
         image_path: str, 
@@ -36,7 +36,7 @@ class VisionModel(BaseModel):
 
     def _secondary_completion(self, prompt: str, image_path: str) -> str:
         instruction = f"Generate a simple caption using the following text to guide your description. Check against the image to insure accuracy:'{prompt}'\n"
-        caption = self._llm_completion(instruction, image_path, format='')
+        caption = self.llm_completion(instruction, image_path, format='')
         return self.strip_text(caption)
 
     def _caption_completion(self, prompt: str, image_path: str) -> str:
@@ -50,7 +50,7 @@ class VisionModel(BaseModel):
         if self.config.logging:
             print(f"\nInstruction:\n{instruction}\n")
             
-        response = self._llm_completion(instruction, image_path)
+        response = self.llm_completion(instruction, image_path)
         
         if self.config.logging:
             print(f"\nElements:\n{response}\n")
@@ -72,3 +72,7 @@ class VisionModel(BaseModel):
             return self._secondary_completion(caption, image_path)
             
         return caption
+
+    def direct_caption(self, image_path, instruction=BaseModel.DEFAULT_CAPTION_PROMPT):
+        response = self.llm_completion(instruction, image_path)
+        return response

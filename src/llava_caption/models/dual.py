@@ -142,3 +142,11 @@ class DualModel(BaseModel):
             return self._caption_completion(visible)
         
         return visible
+    
+    def llm_completion(self, instruction, image_path):
+        response = self.llm.llm_completion(instruction, image_path, "response")
+        return response
+    
+    def direct_caption(self, image_path, instruction=BaseModel.DEFAULT_CAPTION_PROMPT):
+        response = self.llm_completion(instruction, image_path)
+        return response

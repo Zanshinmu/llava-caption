@@ -61,6 +61,10 @@ class OLModel(BaseModel):
         )["response"]
         
         return self.strip_text(response)
+    
+    def direct_caption(self, image_path, instruction=BaseModel.DEFAULT_CAPTION_PROMPT):
+        response = self.llm_completion(instruction, image_path,"")
+        return response
 
     def llm_completion(self, system: str, text: str, label: str, json_format: bool = False) -> str:
         settings = {"num_predict": 1024, "seed": 31337, "temperature": 0.0}

@@ -57,3 +57,8 @@ class LCPModel(BaseModel):
             print(f"\nLLAVA OUTPUT: {response}\n")
             
         return self.strip_text(response)
+        
+        
+    def direct_caption(self, image_path, instruction=BaseModel.DEFAULT_CAPTION_PROMPT):
+        response = self.process_image(instruction, image_path)
+        return self.strip_text(response)

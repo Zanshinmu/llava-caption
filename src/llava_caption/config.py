@@ -25,7 +25,7 @@ class Config:
     # Settings from command line args, with fallback to env vars
     model: str = os.environ.get('LLAVA_PROCESSOR', "MLXModel")
     system_prompt: str = "Describe the image following this style:"
-    temperature: float = float(os.environ.get('TEMPERATURE', "0.0"))
+    temperature: float = float(os.environ.get('TEMPERATURE', "0.1"))
     n_gpu_layers: int = int(os.environ.get('N_GPU_LAYERS', "-1"))
     preprocessor: bool = parse_bool_env('PREPROCESSOR', True)
     secondary_caption: bool = parse_bool_env('SECONDARY_CAPTION', False)

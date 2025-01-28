@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 from typing import Type
 import sys
+import os
 
 from .config import Config
 from .models.base import BaseModel
@@ -59,7 +60,8 @@ def parse_args() -> tuple[Path, Config]:
         secondary_caption=args.secondary_caption,
         logging=args.logging,
         sys_logging=args.sys_logging,
-        ollama_address=args.ollama_address
+        ollama_address=args.ollama_address,
+        direct_caption=args.direct_caption
     )
     
     return Path(args.directory), config
@@ -91,57 +93,59 @@ def get_model_class(config: Config) -> Type[BaseModel]:
 
 def process_directory(directory: Path, model: BaseModel, config: Config) -> None:
     """Process all files in directory and generate captions."""
-    if config.direct_caption:
-        # Direct captioning mode
-        print(f"Direct Caption Mode\n")
-        image_files = list(directory.glob('**/*.png'))
-        total = len(image_files)
-        
-        for i, image_file in enumerate(image_files, 1):
-            # Process image
-            temp_image = resize_and_save_image(image_file)
+    for root, dirs, files in os.walk(directory):
+        if config.direct_caption:
+            print(f"Direct Caption Mode\n")
+            filecount = sum(1 for file in files if file.endswith('.png'))
+            processed = 0
             
-            if temp_image:
-                response = model.process_image("Describe this image", temp_image)
-                
-                # Save caption to corresponding text file
-                text_file = image_file.with_suffix('.txt')
-                with open(text_file, 'w') as f:
-                    f.write(response)
+            for file in files:
+                if file.endswith('.png'):
+                    png_path = Path(root) / file
+                    temp_image = resize_and_save_image(png_path)
                     
-                print(f"{image_file.name}: {i} of {total}\n{response}\n")
-                
-                # Cleanup temp file
-                Path(temp_image).unlink()
-    else:
-        # Original prompt-comparison mode
-        text_files = list(directory.glob('**/*.txt'))
-        total = len(text_files)
-        
-        for i, text_file in enumerate(text_files, 1):
-            # Find corresponding image
-            image_file = text_file.with_suffix('.png')
-            if not image_file.exists():
-                print(f"No corresponding image for {text_file}")
-                continue
-                
-            # Process text and image
-            with open(text_file) as f:
-                text = f.read()
+                    if temp_image:
+                        response = model.direct_caption(temp_image)
+                        processed += 1
+                        
+                        # Write to corresponding text file
+                        txt_path = png_path.with_suffix('.txt')
+                        with open(txt_path, 'w') as f:
+                            f.write(response)
+                            
+                        print(f"{file}: {processed} of {filecount}\n{response}\n")
+                        
+                        # Cleanup temp file
+                        Path(temp_image).unlink()
+        else:
+            filecount = sum(1 for file in files if file.endswith('.txt'))
+            processed = 0
             
-            processed_text = preprocess_text(text) if config.preprocessor else text
-            temp_image = resize_and_save_image(image_file)
-            
-            if temp_image:
-                response = model.process_image(processed_text, temp_image)
-                
-                with open(text_file, 'w') as f:
-                    f.write(response)
+            for file in files:
+                if file.endswith('.txt'):
+                    txt_path = Path(root) / file
+                    with open(txt_path, 'r') as f:
+                        text = f.read()
                     
-                print(f"{text_file.name}: {i} of {total}\n{response}\n")
-                
-                # Cleanup temp file
-                Path(temp_image).unlink()
+                    processed_text = preprocess_text(text) if config.preprocessor else text
+                    png_path = txt_path.with_suffix('.png')
+                    
+                    if not png_path.exists():
+                        print(f"No corresponding image for {file}")
+                        continue
+                        
+                    temp_image = resize_and_save_image(png_path)
+                    if temp_image:
+                        response = model.process_image(processed_text, temp_image)
+                        processed += 1
+                        
+                        with open(txt_path, 'w') as f:
+                            f.write(response)
+                            
+                        print(f"{file}: {processed} of {filecount}\n{response}\n")
+                        
+                        # Cleanup temp file
+                        Path(temp_image).unlink()
 
 def main():
     directory, config = parse_args()
