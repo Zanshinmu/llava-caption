@@ -116,6 +116,8 @@ Ollama Configuration:
 Logging:
   --logging                     Enable detailed logging
   --sys-logging                Enable system logging
+    
+  
 ```
 
 ### Example Usage Patterns
