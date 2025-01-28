@@ -34,7 +34,6 @@ ENV/
 *.gguf
 *.bin
 huggingface/
-models/
 
 # IDE specific files
 .idea/
