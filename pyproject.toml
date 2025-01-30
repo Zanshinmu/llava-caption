@@ -1,0 +1,30 @@
+[project]
+name = "llava-caption"
+version = "0.7.2"
+description = "utAutomatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions."
+authors = [
+    {name = "David Van de Ven",email = "zanshin.g1@gmail.com"}
+]
+license = {text = "GPL3"}
+readme = "README.md"
+requires-python = ">=3.13,<4"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "httpx",
+    "transformers",
+    "llama-cpp-python",
+    "huggingface-hub",
+    "Pillow",
+    "ollama",
+    "tqdm",
+    "pandas",
+    "torch",
+    "json-repair",
+    "mlx",
+    "mlx-vlm"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
