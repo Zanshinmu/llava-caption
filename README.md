@@ -3,7 +3,7 @@
 By David "Zanshinmu" Van de Ven
 zanshin.g1@gmail.com
 
-Automatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions.
+Automatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions. Optimized for and primarily tested on Apple Silicon Macs, though cross-platform compatibility is available.
 
 ---
 
@@ -11,7 +11,7 @@ Automatically caption images using various LLaVA multimodal models. This tool pr
 
 LLaVA Caption was designed to solve a specific problem in AI training: when using generated images, the original prompts often contain elements that aren't present in the final images. Manual verification and captioning is time-consuming, but inaccurate captions make for bad training data. This tool provides higher quality captions than BLIP, with options ranging from basic processing to near-manual quality.
 
-Llava Caption was built and tested on Apple Silicon. While cross-platform tools make it accessible to PCs, it hasn’t been tested on Linux or Windows. 
+Llava Caption was built and tested on Apple Silicon. While cross-platform tools make it accessible to PCs, it hasn't been tested on Linux or Windows. 
 
 ---
 
@@ -52,7 +52,23 @@ Llava Caption was built and tested on Apple Silicon. While cross-platform tools 
 - Git ([git-scm.com](https://git-scm.com/))
 - Ollama ([ollama.com/download](https://ollama.com/download)) - Required for Ollama-based models
 
-### Quick Start
+### Installation with Poetry (Recommended)
+```bash
+# Clone repository
+git clone https://github.com/yourusername/llava-caption.git
+cd llava-caption
+
+# Install with Poetry
+poetry install
+
+# Activate virtual environment
+poetry shell
+
+# Verify installation
+llava-caption --help
+```
+
+### Alternative Installation with pip
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/llava-caption.git

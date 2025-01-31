@@ -1,7 +1,7 @@
 [project]
 name = "llava-caption"
-version = "0.7.2"
-description = "utAutomatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions."
+version = "0.8.0"
+description = "Automatically caption images using various LLaVA multimodal models. This tool processes images with state-of-the-art vision language models to generate accurate, high-quality captions."
 authors = [
     {name = "David Van de Ven",email = "zanshin.g1@gmail.com"}
 ]
@@ -23,6 +23,10 @@ dependencies = [
     "mlx",
     "mlx-vlm"
 ]
+
+[project.urls]
+Repository = "https://github.com/Zanshinmu/llava-caption"
+Issues = "https://github.com/Zanshinmu/llava-caption/issues"
 
 
 [build-system]
